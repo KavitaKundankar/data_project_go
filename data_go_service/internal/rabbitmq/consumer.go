@@ -24,7 +24,7 @@ func NewConsumer(conn *Connection, client *httpclient.Client, log *logger.Logger
 }
 
 // StartConsuming starts taking messages from a queue and applies processing and http sending
-func (c *Consumer) StartConsuming(queueName string, httpURL string, processFunc func(models.DataPayload) models.ProcessedResult) error {
+func (c *Consumer) StartConsuming(queueName string, httpURL string, processFunc func(map[string]interface{}) models.ProcessedResult) error {
 	msgs, err := c.rabbitConn.Channel.Consume(
 		queueName, // queue
 		"",        // consumer
@@ -40,36 +40,37 @@ func (c *Consumer) StartConsuming(queueName string, httpURL string, processFunc 
 
 	go func() {
 		for d := range msgs {
-			c.log.Info("Received a message from %s", queueName)
+			c.log.Info("-------------------------------------------")
+			c.log.Info("EVENT: Received a message from %s", queueName)
 
-			var payload models.DataPayload
+			var payload map[string]interface{}
 			err := json.Unmarshal(d.Body, &payload)
 			if err != nil {
-				c.log.Error("Error unmarshaling JSON: %v", err)
-				// You might want to Nack here if the message is invalid
+				c.log.Error("ERROR: Failed to unmarshal JSON: %v", err)
 				d.Nack(false, false)
 				continue
 			}
 
-			// 1. Process data (Event based)
+			c.log.Info("DEBUG: Message Content: %v", payload)
+
+			// 1. Process data
 			result := processFunc(payload)
+
+			c.log.Info("ACTION: Sending processed data to %s", httpURL)
 
 			// 2. Send via HTTP
 			err = c.httpClient.SendData(httpURL, result)
 			if err != nil {
-				c.log.Error("Error sending HTTP request to %s: %v", httpURL, err)
-
-				// [FIX]: Check if it's a connection error or a transient error
-				// For this demo, we'll requeue after a short delay or just nack and discard if it keeps failing
-				// To keep it simple: Let's log it clearly and requeue, but alert the user.
-				c.log.Info("Requeuing message for %s. Suggestion: Start the mock server!", queueName)
+				c.log.Error("ERROR: HTTP request failed: %v", err)
+				c.log.Info("REQUEUING: Requeuing for %s", queueName)
 				d.Nack(false, true)
 				continue
 			}
 
 			// 3. Acknowledge message only after HTTP success
+			c.log.Info("DONE: Acknowledging message from %s", queueName)
 			d.Ack(false)
-			c.log.Info("Successfully processed and acknowledged message from %s", queueName)
+			c.log.Info("-------------------------------------------")
 		}
 	}()
 

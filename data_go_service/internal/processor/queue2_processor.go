@@ -7,13 +7,15 @@ import (
 )
 
 // Function2 processes data from Queue 2
-func Function2(data models.DataPayload) models.ProcessedResult {
-	fmt.Printf("\n[Queue 2] Message Received:\nID: %s\nSender: %s\nSubject: %s\nBody: %s\n\n",
-		data.ID, data.Sender, data.Subject, data.Body)
+func Function2(data map[string]interface{}) models.ProcessedResult {
+	fmt.Println("\n>>> [PROCESSOR 2] Working on data")
+	fmt.Printf("DATA: %+v\n", data)
+
+	id, _ := data["id"].(string)
 
 	return models.ProcessedResult{
-		OriginalID: data.ID,
+		OriginalID: id,
 		Status:     "Processed",
-		Result:     "Success",
+		Result:     "Queue 2 success",
 	}
 }
