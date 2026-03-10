@@ -90,6 +90,7 @@ func (c *Consumer) processMessage(d amqp.Delivery, queueIndex int) {
 		return
 	}
 
+	// We pass the entire body as the payload to keep it simple and as received
 	data := models.QueueData{
 		ID:      d.MessageId,
 		Payload: body,
@@ -99,14 +100,14 @@ func (c *Consumer) processMessage(d amqp.Delivery, queueIndex int) {
 	var err error
 
 	if queueIndex == 1 {
-		processed, err = c.processor.Function1(data)
+		processed, err = c.processor.ProcessQueue1(data)
 		if err == nil {
-			err = c.processor.SendToHTTP1(processed)
+			err = c.processor.SendToQueue1API(processed)
 		}
 	} else {
-		processed, err = c.processor.Function2(data)
+		processed, err = c.processor.ProcessQueue2(data)
 		if err == nil {
-			err = c.processor.SendToHTTP2(processed)
+			err = c.processor.SendToQueue2API(processed)
 		}
 	}
 
