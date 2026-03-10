@@ -28,12 +28,34 @@ func (p *Processor) ProcessQueue1(data models.QueueData) (map[string]interface{}
 
 	if otherData, ok := payload["otherData"].(map[string]interface{}); ok {
 		if vid, ok := otherData["vesselId"]; ok {
-			otherData["vesselId"] = 22
-			log.Printf("Queue 1: Modified otherData.vesselId from %v to 22", vid)
+			// Convert interface{} (usually float64 from JSON) to int safely
+			var vidInt int
+			// switch v := vid.(type) {
+			// case float64:
+			// 	vidInt = int(v)
+			// case int:
+			// 	vidInt = v
+			// default:
+			// 	log.Printf("Queue 1: Warning, unexpected type for vesselId: %T", vid)
+			// }
+
+			otherData["vesselId"] = drizzleQueue1(vidInt)
+			log.Printf("Queue 1: Modified otherData.vesselId from %v to %v", vid, otherData["vesselId"])
 		}
 	} else if vid, ok := payload["vessel_id"]; ok {
-		payload["vessel_id"] = 22
-		log.Printf("Queue 1: Modified vessel_id from %v to 22", vid)
+		// Convert interface{} (usually float64 from JSON) to int safely
+		var vidInt int
+		// switch v := vid.(type) {
+		// case float64:
+		// 	vidInt = int(v)
+		// case int:
+		// 	vidInt = v
+		// default:
+		// 	log.Printf("Queue 1: Warning, unexpected type for vessel_id: %T", vid)
+		// }
+
+		payload["vessel_id"] = drizzleQueue1(vidInt)
+		log.Printf("Queue 1: Modified vessel_id from %v to %v", vid, payload["vessel_id"])
 	}
 
 	return payload, nil
@@ -46,15 +68,37 @@ func (p *Processor) ProcessQueue2(data models.QueueData) (map[string]interface{}
 
 	// Modify root level vesselId
 	if vid, ok := payload["vesselId"]; ok {
-		payload["vesselId"] = 44
-		log.Printf("Queue 2: Modified root vesselId from %v to 44", vid)
+		// Convert interface{} (usually float64 from JSON) to int safely
+		var vidInt int
+		// switch v := vid.(type) {
+		// case float64:
+		// 	vidInt = int(v)
+		// case int:
+		// 	vidInt = v
+		// default:
+		// 	log.Printf("Queue 2: Warning, unexpected type for vesselId: %T", vid)
+		// }
+
+		payload["vesselId"] = drizzleQueue2(vidInt)
+		log.Printf("Queue 2: Modified root vesselId from %v to %v", vid, payload["vesselId"])
 	}
 
 	// Modify vesselId inside meta if exists
 	if meta, ok := payload["meta"].(map[string]interface{}); ok {
 		if vid, ok := meta["vesselId"]; ok {
-			meta["vesselId"] = 44
-			log.Printf("Queue 2: Modified meta.vesselId from %v to 44", vid)
+			// Convert interface{} (usually float64 from JSON) to int safely
+			var vidInt int
+			// switch v := vid.(type) {
+			// case float64:
+			// 	vidInt = int(v)
+			// case int:
+			// 	vidInt = v
+			// default:
+			// 	log.Printf("Queue 2: Warning, unexpected type for meta.vesselId: %T", vid)
+			// }
+
+			meta["vesselId"] = drizzleQueue2(vidInt)
+			log.Printf("Queue 2: Modified meta.vesselId from %v to %v", vid, meta["vesselId"])
 		}
 	}
 
